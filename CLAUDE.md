@@ -34,27 +34,27 @@ See README.md for full profiles. Summary:
 ## Build Roadmap
 
 ### Phase 1 — Godot Project Setup
-- [ ] Initialize Godot 4 project, 2D renderer, pixel snap on
-- [ ] Project settings: tile size 16×16, Nearest filter globally
-- [ ] Import all `sprites/` with Nearest filter, no mipmaps
-- [ ] Build `TileSet` resource from `sprites/tilesets/_sheet_tileset.png`
-- [ ] Folder structure: `scenes/`, `scripts/`, `assets/`
+- [x] Initialize Godot 4 project, 2D renderer, pixel snap on
+- [x] Project settings: Nearest filter globally (see *Scale* note below re: tile size)
+- [x] Import all `sprites/` with Nearest filter, no mipmaps
+- [x] Build `TileSet` resource from `sprites/tilesets/_sheet_tileset.png` → `godot/assets/tilesets/factory_tileset.tres` (wall tile has collision)
+- [x] Folder structure: `scenes/`, `scripts/`, `assets/`
 
 ### Phase 2 — Core Systems
-- [ ] **Day/time system** — game clock, bell events at 8:55 / 9:00 / 12:00 / 12:55 / 1:00 / 5:30
-- [ ] **Player controller** — 4-dir top-down movement, animation state machine (idle → walk → work)
-- [ ] **NPC controller** — fixed patrol/idle routes, dialogue trigger on proximity
-- [ ] **Camera** — follows player, clamped to room bounds
-- [ ] **Dialogue system** — text box, character name, portrait, advances on input
+- [x] **Day/time system** — game clock, bell events at 8:55 / 9:00 / 12:00 / 12:55 / 1:00 / 5:30
+- [x] **Player controller** — 4-dir top-down movement, animation state machine (idle → walk → work)
+- [x] **NPC controller** — fixed patrol/idle routes, dialogue trigger on proximity
+- [x] **Camera** — follows player, clamped to room bounds
+- [x] **Dialogue system** — text box, character name, advances on input (typewriter). *Portraits not done yet.*
 
 ### Phase 3 — Yoshiko's Level (Basement / Shredder Station)
-- [ ] Design basement layout: shredder row (14 machines), TRAN delivery door, locker area, stairs, reception
-- [ ] Shredder interaction loop: pick up container → feed pages → dispose full bag
-- [ ] TRAN delivery event: triggers at 10am and 3pm, carts arrive at south door
-- [ ] Machine states: idle / active / jammed (requires switching to next machine)
-- [ ] NPCs: Captain Samukawa, Itsumi, Hanzake, the Giant — idle dialogue, "commercial" event
-- [ ] Bell schedule drives day structure (morning meeting visible in background)
-- [ ] Late-game: shredding rhythm hypnotic → screen distortion → Yoshiko becomes a black bird
+- [x] Design basement layout: shredder row (14 machines), TRAN delivery door, locker area, stairs, reception
+- [x] Shredder interaction loop: pick up container → feed pages → dispose full bag
+- [x] TRAN delivery event: triggers at 10am and 3pm, carts arrive at south door
+- [x] Machine states: idle / active / jammed (requires switching to next machine)
+- [x] NPCs: Captain Samukawa (returns day 2), Itsumi, Hanzake, the Giant, Goto — idle dialogue, "commercial" line at end of day 2. *A real Moo-Moo Yakiniku scene is still TODO.*
+- [x] Bell schedule drives day structure (morning meeting visible in background)
+- [x] Late-game: shredding rhythm hypnotic → screen tint + text fragments → Yoshiko becomes a black bird (day 3). *Real distortion shader still TODO (Phase 7).*
 
 ### Phase 4 — Narrator's Level (Document Division Office)
 - [ ] Design office layout: 4 desks with partitions, filing cabinet, return shelf, phone
@@ -85,13 +85,19 @@ See README.md for full profiles. Summary:
 ### Phase 7 — Polish
 - [ ] Sound: shredder hum, bell chimes, rain ambience, machine noise
 - [ ] Surreal late-game visuals: screen distortion, color desaturation, text fragments
-- [ ] Main menu + character select screen
+- [~] Main menu + character select screen (Yoshiko playable; others disabled)
 - [ ] Save/load system
 - [ ] Ending sequences per character
 
 ---
 
 ## Implementation Notes
+- **Scale**: textures are the 4× exports (64px per 16px pixel-art tile), drawn at native size. World units are therefore **64 per tile**; the player's `Camera2D` uses `zoom = 0.25` so the 320×180 viewport shows a 20×11-tile area with every art pixel crisp. UI (CanvasLayers) is laid out in 320×180 space; the global theme (`assets/ui/theme.tres`) sets font size 8.
+- **Running**: open `godot/project.godot` in Godot 4.3+. WASD/arrows move, E interacts/advances dialogue, hold Tab to fast-forward the clock.
+- **Yoshiko's layout** is the ASCII `LAYOUT` in `scripts/systems/YoshikoLevel.gd` — edit the text to move shredders/NPCs/props. NPC dialogue and prop text live in the `NPCS` / `PROPS` dictionaries in the same file.
+- **Interaction contract**: any body/area in front of the player with `interact(player)` is usable; add `get_prompt(player) -> String` to show a HUD prompt.
+- **Sprite sheets → animations**: `SheetFrames.build(walk_sheet, work_sheet)` (`scripts/util/SheetFrames.gd`) turns the generator's 8-frame sheets into `idle_/walk_/work_<down|left|up|right>`.
+- `GameState` autoload holds cross-scene progress (day, Yoshiko's rhythm) — the save system should serialize it.
 - Start with **Phase 3 (Yoshiko)** — her loop is the most mechanical and self-contained; best for prototyping core systems
 - The day clock should be a singleton (autoload) so all three levels share it
 - NPCs use a simple state machine: `IDLE → WALK_PATROL → DIALOGUE`

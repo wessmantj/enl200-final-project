@@ -108,3 +108,6 @@ Discovers his sister works in the same factory. Encounters Furufue's documents (
 | TRAN workers | Transport crew wearing jackets labelled TRAN; deliver document containers and collect full shred bags |
 | Goto | Appears in all three narrators' stories; PR department; red-faced; a connective tissue between the three plotlines |
 | Captain Samukawa | Yoshiko's team leader; his grandson Hikaru appears in Furufue's storyline |
+
+
+https://www.spriters-resource.com/pc_computer/theescapists/

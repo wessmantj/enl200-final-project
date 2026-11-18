@@ -7,6 +7,7 @@ extends CanvasLayer
 @onready var prompt_label: Label = $PromptLabel
 @onready var toast_label: Label = $ToastLabel
 @onready var surreal_overlay: ColorRect = $SurrealOverlay
+@onready var black_fade: ColorRect = $BlackFade
 
 var _toast_tween: Tween
 
@@ -40,3 +41,14 @@ func toast(text: String, seconds := 3.0) -> void:
 func set_surreal(amount: float, duration := 1.0) -> void:
 	var target := Color(0.02, 0.0, 0.08, clampf(amount, 0.0, 1.0) * 0.45)
 	create_tween().tween_property(surreal_overlay, "color", target, duration)
+
+## Fades the screen to/from black (the Narrator nodding off and waking).
+func fade_to_black(duration := 1.0) -> void:
+	var tween := create_tween()
+	tween.tween_property(black_fade, "color", Color(0, 0, 0, 1), duration)
+	await tween.finished
+
+func fade_from_black(duration := 1.0) -> void:
+	var tween := create_tween()
+	tween.tween_property(black_fade, "color", Color(0, 0, 0, 0), duration)
+	await tween.finished

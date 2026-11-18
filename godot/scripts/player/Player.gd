@@ -5,7 +5,7 @@ extends CharacterBody2D
 signal prompt_changed(text: String)
 signal carrying_changed(text: String)
 
-enum Carry { NONE, DOCUMENTS, FULL_BAG }
+enum Carry { NONE, DOCUMENTS, FULL_BAG, MARKED_PACKET }
 
 const SPEED := 260.0
 const INTERACT_REACH := 40.0
@@ -15,11 +15,13 @@ const FACING_VEC := {
 const CARRY_TEXTURES := {
 	Carry.DOCUMENTS: preload("res://assets/sprites/items/document_packet.png"),
 	Carry.FULL_BAG: preload("res://assets/sprites/items/shred_bag.png"),
+	Carry.MARKED_PACKET: preload("res://assets/sprites/items/document_open.png"),
 }
 const CARRY_NAMES := {
 	Carry.NONE: "",
 	Carry.DOCUMENTS: "Carrying: document container",
 	Carry.FULL_BAG: "Carrying: full shred bag",
+	Carry.MARKED_PACKET: "Carrying: a marked-up packet",
 }
 
 @export var walk_sheet: Texture2D
@@ -124,6 +126,15 @@ func give_full_bag() -> void:
 	_set_carry(Carry.FULL_BAG)
 
 func take_full_bag() -> void:
+	_set_carry(Carry.NONE)
+
+func has_marked_packet() -> bool:
+	return carrying == Carry.MARKED_PACKET
+
+func give_marked_packet() -> void:
+	_set_carry(Carry.MARKED_PACKET)
+
+func take_marked_packet() -> void:
 	_set_carry(Carry.NONE)
 
 func _set_carry(c: Carry) -> void:

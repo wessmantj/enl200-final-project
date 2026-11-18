@@ -4,6 +4,8 @@ extends CharacterBody2D
 ## Conversations cycle in order and the last one repeats. A line may be a
 ## String (spoken by this NPC) or a full {"speaker", "text"} Dictionary.
 
+signal talked(display_name: String)
+
 enum State { IDLE, PATROL, DIALOGUE }
 
 @export var display_name := ""
@@ -89,3 +91,4 @@ func interact(player: Node2D) -> void:
 	await DialogueManager.dialogue_ended
 	state = previous
 	_play_idle()
+	talked.emit(display_name)

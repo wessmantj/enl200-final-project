@@ -66,13 +66,14 @@ See README.md for full profiles. Summary:
 - Day loop drives to a day-3 closing where sleep/waking blur (`narrator_haze` → surreal overlay). Full ending sequence is Phase 7.
 
 ### Phase 5 — Furufue's Level (Grounds + Live-in Lab)
-- [ ] Outdoor grounds: Perlin noise layout of moss tiles, paths, buildings
-- [ ] Lab interior: desk, microscope, backyard garden (shiso + tomatoes)
-- [ ] Moss hunt mechanic: walk grounds, interact with moss tiles, log samples
-- [ ] Family Moss Hunt event: spawn child NPCs, guided tour sequence, Forest Pantser warning
-- [ ] Aoyama NPC: phone call events, logistics for hunt, the "15 years / what have you done?" scene
-- [ ] Factory animals: factory shags by river (non-flying), coypus from drains
-- [ ] Old man Samukawa + grandson Hikaru visit (connects to Narrator/Yoshiko arcs)
+- [x] Outdoor grounds: `FastNoiseLite` (Perlin) scatters interactable `MossSample` nodes over the grounds in `FurufueLevel._build_level` (~77 clumps, seeded so moss regrows the same each day). Lab + river from the ASCII `LAYOUT`.
+- [x] Lab interior: desk, microscope, bed, backyard garden (tomato + shiso props). *Microscope/bed/plants reuse existing textures as placeholders.*
+- [x] Moss hunt mechanic: walk grounds, examine moss (`MossSample`, time-based `do_work`), log samples → raises `furufue_drift`. Rare (dense) moss gives a bonus. Counter on the HUD.
+- [x] Family Moss Hunt event: talk to Aoyama after logging ≥3 → child NPCs spawn, guided tour, Forest Pantser warning, then they leave.
+- [x] Aoyama NPC: phone-call toasts at bells; sets up the hunt; delivers the day-3 "fifteen years / what have you accomplished?" confrontation (the ending).
+- [x] Factory animals: `Critter` nodes — factory shags on the river (won't fly), coypus up from the drains. Ambient, bob in place, examinable.
+- [x] Old man Samukawa + grandson Hikaru visit (day ≥2, on first sample): Hikaru's fauna report ties to the Narrator's proofreading; old man Samukawa = the Captain from Yoshiko's story.
+- `furufue_drift` drives the surreal overlay; day 3 → the confrontation ending. Full ending polish is Phase 7.
 
 ### Phase 6 — World Connections
 - [ ] Shared factory map with bus stops connecting the three zones
@@ -86,7 +87,8 @@ See README.md for full profiles. Summary:
 ### Phase 7 — Polish
 - [ ] Sound: shredder hum, bell chimes, rain ambience, machine noise
 - [ ] Surreal late-game visuals: screen distortion, color desaturation, text fragments
-- [~] Main menu + character select screen (Yoshiko + Narrator playable; Furufue disabled)
+- [~] Main menu + character select screen (all three — Yoshiko, Narrator, Furufue — playable)
+- [ ] **Art fix — desk/table sprite**: the current table (from The Escapists) reads as a solid block of wood. Give it visible **legs** so it looks like a table, not a crate. It's reused heavily (Yoshiko reception, Narrator desks/phone, Furufue desk/microscope/river sign), so fixing the one sprite improves every level.
 - [ ] Save/load system
 - [ ] Ending sequences per character
 

@@ -1,0 +1,26 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/objects/ReturnShelf.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/sprites/objects/filing_cabinet.png" id="2_tex"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_body"]
+size = Vector2(56, 44)
+
+[node name="ReturnShelf" type="StaticBody2D"]
+script = ExtResource("1_script")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("2_tex")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, 6)
+shape = SubResource("RectangleShape2D_body")
+
+[node name="CountLabel" type="Label" parent="."]
+offset_left = -32.0
+offset_top = -60.0
+offset_right = 32.0
+offset_bottom = -28.0
+theme_override_font_sizes/font_size = 28
+theme_override_constants/outline_size = 8
+horizontal_alignment = 1

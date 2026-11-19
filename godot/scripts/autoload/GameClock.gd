@@ -31,6 +31,14 @@ func start_day() -> void:
 func stop() -> void:
 	is_running = false
 
+## Jump the clock forward, minute by minute, so bells in between still ring
+## (used by the Narrator's sleep mechanic — he dozes through part of the day).
+func skip(minutes: int) -> void:
+	for _i in minutes:
+		if not is_running:
+			break
+		_advance_minute()
+
 func is_fast_forwarding() -> bool:
 	return is_running and Input.is_action_pressed("fast_forward")
 

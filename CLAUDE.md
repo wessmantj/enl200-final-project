@@ -57,21 +57,23 @@ See README.md for full profiles. Summary:
 - [x] Late-game: shredding rhythm hypnotic → screen tint + text fragments → Yoshiko becomes a black bird (day 3). *Real distortion shader still TODO (Phase 7).*
 
 ### Phase 4 — Narrator's Level (Document Division Office)
-- [ ] Design office layout: 4 desks with partitions, filing cabinet, return shelf, phone
-- [ ] Proofreading loop: grab packet → read/mark errors (time-based or minigame) → return to shelf
-- [ ] Sleep mechanic: idle too long → fade to black → wake up, time skipped, red pen marks on page
-- [ ] NPCs: Kasumi, Irinoi (brownish perm), Glasses — whispered dialogue
-- [ ] Discovery event: Narrator spots Yoshiko in the factory (cross-character moment)
-- [ ] Narrator proofreads Hikaru Samukawa's fauna report (connects to Furufue's story)
+- [x] Design office layout: coworker desks + partitions, filing cabinets, return shelf, phone, windows. *Partitions are rendered as the desk props / short wall segments; the "girlfriend" NPC is referenced via the phone prop, not spawned.*
+- [x] Proofreading loop: grab packet from return shelf → carry to desk → proofread (time-based `do_work`) → carry marked packet back → file. See `ProofDesk.gd` / `ReturnShelf.gd`.
+- [x] Sleep mechanic: idle ~14s with the clock running → fade to black → `GameClock.skip()` jumps time → wake disoriented with red-pen marks. Raises `narrator_haze`.
+- [x] NPCs: Kasumi, Irinoi (brownish perm), Glasses. *Irinoi reuses Itsumi's sheet, Glasses reuses Goto's — no dedicated sprites yet.*
+- [x] Discovery event: after filing 2 packets on day ≥2, Narrator spots Yoshiko in a grey apron crossing the grounds (a black bird on the sill ties to her ending).
+- [x] Narrator proofreads Hikaru Samukawa's fauna report (special packet from day 2) and dismisses it as fiction — connects to Furufue's story.
+- Day loop drives to a day-3 closing where sleep/waking blur (`narrator_haze` → surreal overlay). Full ending sequence is Phase 7.
 
 ### Phase 5 — Furufue's Level (Grounds + Live-in Lab)
-- [ ] Outdoor grounds: Perlin noise layout of moss tiles, paths, buildings
-- [ ] Lab interior: desk, microscope, backyard garden (shiso + tomatoes)
-- [ ] Moss hunt mechanic: walk grounds, interact with moss tiles, log samples
-- [ ] Family Moss Hunt event: spawn child NPCs, guided tour sequence, Forest Pantser warning
-- [ ] Aoyama NPC: phone call events, logistics for hunt, the "15 years / what have you done?" scene
-- [ ] Factory animals: factory shags by river (non-flying), coypus from drains
-- [ ] Old man Samukawa + grandson Hikaru visit (connects to Narrator/Yoshiko arcs)
+- [x] Outdoor grounds: `FastNoiseLite` (Perlin) scatters interactable `MossSample` nodes over the grounds in `FurufueLevel._build_level` (~77 clumps, seeded so moss regrows the same each day). Lab + river from the ASCII `LAYOUT`.
+- [x] Lab interior: desk, microscope, bed, backyard garden (tomato + shiso props). *Microscope/bed/plants reuse existing textures as placeholders.*
+- [x] Moss hunt mechanic: walk grounds, examine moss (`MossSample`, time-based `do_work`), log samples → raises `furufue_drift`. Rare (dense) moss gives a bonus. Counter on the HUD.
+- [x] Family Moss Hunt event: talk to Aoyama after logging ≥3 → child NPCs spawn, guided tour, Forest Pantser warning, then they leave.
+- [x] Aoyama NPC: phone-call toasts at bells; sets up the hunt; delivers the day-3 "fifteen years / what have you accomplished?" confrontation (the ending).
+- [x] Factory animals: `Critter` nodes — factory shags on the river (won't fly), coypus up from the drains. Ambient, bob in place, examinable.
+- [x] Old man Samukawa + grandson Hikaru visit (day ≥2, on first sample): Hikaru's fauna report ties to the Narrator's proofreading; old man Samukawa = the Captain from Yoshiko's story.
+- `furufue_drift` drives the surreal overlay; day 3 → the confrontation ending. Full ending polish is Phase 7.
 
 ### Phase 6 — World Connections
 - [ ] Shared factory map with bus stops connecting the three zones
@@ -85,7 +87,8 @@ See README.md for full profiles. Summary:
 ### Phase 7 — Polish
 - [ ] Sound: shredder hum, bell chimes, rain ambience, machine noise
 - [ ] Surreal late-game visuals: screen distortion, color desaturation, text fragments
-- [~] Main menu + character select screen (Yoshiko playable; others disabled)
+- [~] Main menu + character select screen (all three — Yoshiko, Narrator, Furufue — playable)
+- [ ] **Art fix — desk/table sprite**: the current table (from The Escapists) reads as a solid block of wood. Give it visible **legs** so it looks like a table, not a crate. It's reused heavily (Yoshiko reception, Narrator desks/phone, Furufue desk/microscope/river sign), so fixing the one sprite improves every level.
 - [ ] Save/load system
 - [ ] Ending sequences per character
 
@@ -94,7 +97,7 @@ See README.md for full profiles. Summary:
 ## Implementation Notes
 - **Scale**: textures are the 4× exports (64px per 16px pixel-art tile), drawn at native size. World units are therefore **64 per tile**; the player's `Camera2D` uses `zoom = 0.25` so the 320×180 viewport shows a 20×11-tile area with every art pixel crisp. UI (CanvasLayers) is laid out in 320×180 space; the global theme (`assets/ui/theme.tres`) sets font size 8.
 - **Running**: open `godot/project.godot` in Godot 4.3+. WASD/arrows move, E interacts/advances dialogue, hold Tab to fast-forward the clock.
-- **Yoshiko's layout** is the ASCII `LAYOUT` in `scripts/systems/YoshikoLevel.gd` — edit the text to move shredders/NPCs/props. NPC dialogue and prop text live in the `NPCS` / `PROPS` dictionaries in the same file.
+- **Yoshiko's layout** is the ASCII `LAYOUT` in `scripts/systems/YoshikoLevel.gd` — edit the text to move shredders/NPCs/props. NPC dialogue and prop text live in the `NPCS` / `PROPS` dictionaries in the same file. **The Narrator's office** works identically in `scripts/systems/NarratorLevel.gd` (same `LAYOUT` / `NPCS` / `PROPS` convention; `D` = proof desk, `F` = return shelf).
 - **Interaction contract**: any body/area in front of the player with `interact(player)` is usable; add `get_prompt(player) -> String` to show a HUD prompt.
 - **Sprite sheets → animations**: `SheetFrames.build(walk_sheet, work_sheet)` (`scripts/util/SheetFrames.gd`) turns the generator's 8-frame sheets into `idle_/walk_/work_<down|left|up|right>`.
 - `GameState` autoload holds cross-scene progress (day, Yoshiko's rhythm) — the save system should serialize it.

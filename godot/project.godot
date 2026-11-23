@@ -23,6 +23,7 @@ DialogueManager="*res://scripts/autoload/DialogueManager.gd"
 SceneTransition="*res://scripts/autoload/SceneTransition.gd"
 GameState="*res://scripts/autoload/GameState.gd"
 WorldTravel="*res://scripts/autoload/WorldTravel.gd"
+PauseMenu="*res://scripts/autoload/PauseMenu.gd"
 
 [display]
 

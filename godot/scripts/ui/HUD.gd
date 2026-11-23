@@ -39,8 +39,10 @@ func toast(text: String, seconds := 3.0) -> void:
 	_toast_tween.tween_property(toast_label, "modulate:a", 0.0, 0.6)
 
 func set_surreal(amount: float, duration := 1.0) -> void:
-	var target := Color(0.02, 0.0, 0.08, clampf(amount, 0.0, 1.0) * 0.45)
-	create_tween().tween_property(surreal_overlay, "color", target, duration)
+	# Drives the surreal.gdshader on SurrealOverlay (desaturate + cold tint +
+	# wobble + vignette). 0 is a clean pass-through of the screen.
+	var target := clampf(amount, 0.0, 1.0)
+	create_tween().tween_property(surreal_overlay.material, "shader_parameter/amount", target, duration)
 
 ## Fades the screen to/from black (the Narrator nodding off and waking).
 func fade_to_black(duration := 1.0) -> void:

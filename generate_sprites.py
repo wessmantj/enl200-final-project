@@ -643,20 +643,31 @@ def make_wall_tile():
     return img
 
 def make_desk():
-    """16x16 top-down office desk"""
+    """16x16 three-quarter view table — a top with four visible legs, so it
+    reads as a table (not a solid crate). Reused across all three levels."""
     img = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
     d = ImageDraw.Draw(img)
-    # Desk surface
-    rect(d, 1, 1, 14, 14, (175, 155, 115))
-    # Top edge (front face of desk)
-    rect(d, 1, 14, 14, 15, (130, 115, 85))
-    # Side edge
-    rect(d, 14, 1, 15, 15, (130, 115, 85))
+    top  = (175, 155, 115)
+    edge = (130, 115, 85)
+    hi   = (195, 175, 130)
+    leg  = (95, 80, 58)
+    leghi = (120, 103, 76)
+    # Legs first — gaps between them stay transparent so you see "under" the top.
+    # Two front legs (tall) and two back legs (shorter, inset = depth).
+    rect(d, 2, 11, 3, 15, leg)    # front-left
+    rect(d, 12, 11, 13, 15, leg)  # front-right
+    rect(d, 5, 11, 6, 14, leg)    # back-left
+    rect(d, 9, 11, 10, 14, leg)   # back-right
+    for lx in (2, 12, 5, 9):
+        px(d, lx, 11, leghi)
+    # Tabletop
+    rect(d, 1, 2, 14, 10, top)
+    # Front apron (the top's thickness)
+    rect(d, 1, 10, 14, 11, edge)
+    # Right-side edge, for the three-quarter read
+    rect(d, 14, 2, 14, 11, edge)
     # Surface highlight
-    rect(d, 2, 2, 8, 3, (195, 175, 130))
-    # Leg shadows
-    for lx, ly in [(1,1),(13,1),(1,13),(13,13)]:
-        px(d, lx, ly, (105, 90, 65))
+    rect(d, 2, 3, 8, 4, hi)
     return img
 
 def make_tran_cart():

@@ -14,6 +14,7 @@ const TILE := 64
 #   D  desk             M  microscope         E  bed
 #   T  tomato plant     H  shiso              R  river sign
 #   S  factory shag     C  coypu (drains)
+#   O  Goto             U  shuttle stop
 const LAYOUT: Array[String] = [
 	"############################",
 	"#,,,,,#.....T.H.T.H.T......#",
@@ -22,9 +23,9 @@ const LAYOUT: Array[String] = [
 	"#,E,,,.....................#",
 	"#,,,,,#....................#",
 	"#######....................#",
-	"#..........................#",
+	"#......U...................#",
 	"#...P.....................C#",
-	"#..........A..............C#",
+	"#..........A.....O........C#",
 	"#.........................C#",
 	"#.........................##",
 	"#.R......................S.#",
@@ -50,6 +51,7 @@ const MossScene := preload("res://scenes/objects/MossSample.tscn")
 const CritterScene := preload("res://scenes/objects/Critter.tscn")
 const NPCScene := preload("res://scenes/actors/NPC.tscn")
 const PropScene := preload("res://scenes/objects/Prop.tscn")
+const BusStopScene := preload("res://scenes/objects/BusStop.tscn")
 
 const TEX_SHAG := preload("res://assets/sprites/objects/factory_shag.png")
 const TEX_COYPU := preload("res://assets/sprites/objects/coypu.png")
@@ -105,6 +107,19 @@ var NPCS := {
 			["Good work. Or work, anyway. Keep at it."],
 		],
 	},
+	"O": {
+		"name": "Goto",
+		"walk": preload("res://assets/sprites/npcs/goto_walk.png"),
+		"patrol": [Vector2.ZERO, Vector2(0, 2 * TILE)],
+		"conversations": [
+			[
+				{"speaker": "Goto", "text": "Furufue-san! The green roofs, marvelous. I handle the PR for that. And the shredding downstairs. And a few other things."},
+				{"speaker": "Furufue", "text": "(The same smiling man turns up wherever I go in this place. I've stopped asking what his job actually is.)"},
+				{"speaker": "Goto", "text": "Fifteen years of moss! The factory does love a long, quiet project. Keep at it, keep at it."},
+			],
+			[{"speaker": "Goto", "text": "The shuttle to the bridge stops just there, if you fancy lunch. The Okinawan place is popular."}],
+		],
+	},
 }
 
 const DRIFT_FRAGMENTS := [
@@ -122,8 +137,10 @@ const DRIFT_FRAGMENTS := [
 
 var _samples_today := 0
 var _ending_started := false
+var _bus_pos := Vector2.ZERO
 
 func _ready() -> void:
+	GameState.current_character = "furufue"
 	_build_level()
 
 	player.prompt_changed.connect(hud.set_prompt)
@@ -136,11 +153,27 @@ func _ready() -> void:
 			npc.talked.connect(_on_npc_talked)
 	GameClock.bell_rang.connect(_on_bell)
 
-	_update_stats()
 	hud.set_surreal(GameState.furufue_drift, 0.01)
 
-	GameClock.start_day()
-	hud.toast("Day %d. Green Roofs — the factory grounds." % GameState.day, 3.0)
+	if GameState.returning_from_bridge:
+		_resume_from_bridge()
+	else:
+		_update_stats()
+		GameClock.start_day()
+		hud.toast("Day %d. Green Roofs — the factory grounds." % GameState.day, 3.0)
+
+func _resume_from_bridge() -> void:
+	GameState.returning_from_bridge = false
+	var p := GameState.take_day_progress()
+	_samples_today = p.get("samples", 0)
+	GameState.restore_clock()
+	player.position = _bus_pos + Vector2(0, TILE)
+	_update_stats()
+	hud.toast("Back from the bridge. The moss hasn't moved.", 3.0)
+
+## Stash the day's tally before the shuttle leaves (WorldTravel pauses the clock).
+func on_board_bus() -> void:
+	GameState.save_day_progress({"samples": _samples_today})
 
 # --- Level construction ---------------------------------------------------------
 
@@ -170,6 +203,11 @@ func _build_level() -> void:
 			match ch:
 				"P":
 					player.position = pos
+				"U":
+					_bus_pos = pos
+					var stop := BusStopScene.instantiate()
+					stop.position = pos
+					entities.add_child(stop)
 				"S":
 					_spawn_critter(TEX_SHAG, "shag", pos, [
 						"A factory shag. It opens its wings, thinks better of it, and folds them again.",

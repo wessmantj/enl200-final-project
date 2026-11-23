@@ -3,6 +3,41 @@ extends Node
 
 var day := 1
 
+# Which narrator is being played: "yoshiko" | "narrator" | "furufue". Set by
+# each level on entry; WorldTravel uses it to send the bus back to the right zone.
+var current_character := ""
+
+# --- Bus trips (Phase 6) ----------------------------------------------------------
+# A trip to the shared Bridge is a side outing: the day clock pauses and the
+# level's in-progress tally is kept so stepping away doesn't cost the day.
+var returning_from_bridge := false
+var met_at_restaurant := false  # glimpsed another narrator at the Okinawan place
+
+var _clock_snap := {}
+# Per-character "today" counters, preserved across a bus trip and cleared when a
+# fresh day actually starts. Keyed by current_character.
+var day_progress := {}
+
+func snapshot_clock() -> void:
+	_clock_snap = {"h": GameClock.hour, "m": GameClock.minute, "run": GameClock.is_running}
+
+func restore_clock() -> void:
+	if _clock_snap.is_empty():
+		return
+	GameClock.hour = _clock_snap.h
+	GameClock.minute = _clock_snap.m
+	GameClock.is_running = _clock_snap.run
+	_clock_snap = {}
+
+func save_day_progress(data: Dictionary) -> void:
+	day_progress[current_character] = data
+
+func take_day_progress() -> Dictionary:
+	# Consumed once on return from the bridge, then cleared.
+	var data: Dictionary = day_progress.get(current_character, {})
+	day_progress.erase(current_character)
+	return data
+
 # Yoshiko: how deep the shredding rhythm has sunk in (0..1). Reaching 1.0
 # triggers her ending — she becomes a black bird.
 var yoshiko_rhythm := 0.0
@@ -15,8 +50,15 @@ var narrator_packets_total := 0
 var narrator_saw_yoshiko := false  # spotted his sister crossing the grounds
 var narrator_read_report := false  # proofread Hikaru Samukawa's fauna report
 
-func reset_yoshiko() -> void:
+func _reset_common() -> void:
 	day = 1
+	returning_from_bridge = false
+	met_at_restaurant = false
+	day_progress.clear()
+	_clock_snap = {}
+
+func reset_yoshiko() -> void:
+	_reset_common()
 	yoshiko_rhythm = 0.0
 	yoshiko_pages_total = 0
 

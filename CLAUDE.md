@@ -76,13 +76,13 @@ See README.md for full profiles. Summary:
 - `furufue_drift` drives the surreal overlay; day 3 → the confrontation ending. Full ending polish is Phase 7.
 
 ### Phase 6 — World Connections
-- [ ] Shared factory map with bus stops connecting the three zones
-- [ ] River / central bridge as shared explorable space
-- [ ] Cross-character moments:
-  - Yoshiko and Furufue meet at the Okinawan restaurant on the bridge
-  - Narrator's proofread packet contains Hikaru's fauna report
-  - Old man Samukawa = Captain Samukawa's father (implicit)
-- [ ] Goto NPC appears in all three levels (connective tissue)
+- [x] Shared factory map with bus stops connecting the three zones. A `BusStop` prop (`U` in each `LAYOUT`) catches the factory shuttle to the shared Bridge; a return stop on the Bridge sends you back to your own zone. Routing + the clock/tally hand-off live in the `WorldTravel` autoload + `GameState`.
+- [x] River / central bridge as shared explorable space — `scenes/levels/BridgeLevel.tscn` / `scripts/systems/BridgeLevel.gd`. River, span, the Okinawan restaurant, a wandering Goto. The day clock pauses for the outing (a timeless between-space) and resumes at the same minute on return; the day's tally is preserved via `GameState.save_day_progress` / `take_day_progress`.
+- [x] Cross-character moments:
+  - [x] Yoshiko and Furufue meet at the Okinawan restaurant on the bridge — examining the restaurant plays a *glimpse* scene (they never truly connect, per the novel): as Yoshiko you spot the moss man, as Furufue the woman in the grey apron, as the Narrator both (one of them his sister). The Bridge seats the other narrator(s) using their character sheets. Sets `GameState.met_at_restaurant`.
+  - [x] Narrator's proofread packet contains Hikaru's fauna report (done in Phase 4).
+  - [x] Old man Samukawa = Captain Samukawa's father — implicit via the shared surname / Phase 5 visit.
+- [x] Goto NPC appears in all three levels (connective tissue) — already in Yoshiko's; added as `O` to the Narrator office and Furufue grounds (the vague PR man who turns up everywhere), and he wanders the Bridge too.
 
 ### Phase 7 — Polish
 - [ ] Sound: shredder hum, bell chimes, rain ambience, machine noise
@@ -99,6 +99,7 @@ See README.md for full profiles. Summary:
 - **Running**: open `godot/project.godot` in Godot 4.3+. WASD/arrows move, E interacts/advances dialogue, hold Tab to fast-forward the clock.
 - **Yoshiko's layout** is the ASCII `LAYOUT` in `scripts/systems/YoshikoLevel.gd` — edit the text to move shredders/NPCs/props. NPC dialogue and prop text live in the `NPCS` / `PROPS` dictionaries in the same file. **The Narrator's office** works identically in `scripts/systems/NarratorLevel.gd` (same `LAYOUT` / `NPCS` / `PROPS` convention; `D` = proof desk, `F` = return shelf).
 - **Interaction contract**: any body/area in front of the player with `interact(player)` is usable; add `get_prompt(player) -> String` to show a HUD prompt.
+- **Bus travel / the Bridge (Phase 6)**: `U` in any level's `LAYOUT` spawns a `BusStop` (`scenes/objects/BusStop.tscn`). Interacting with it calls the home level's optional `on_board_bus()` (to stash its today-tally via `GameState.save_day_progress`) then `WorldTravel.go_to_bridge()`, which snapshots + pauses `GameClock` and loads `BridgeLevel`. The Bridge's return stop (`to_bridge = false`) calls `WorldTravel.return_home()`, which routes by `GameState.current_character` (each level sets this in `_ready`). On re-entry a level checks `GameState.returning_from_bridge` → `_resume_from_bridge()`: restore the clock, re-apply the saved tally, spawn the player at the bus stop (`_bus_pos`), re-stock the station, and **skip** the morning intro. Surreal meters already persist on `GameState`. `O` is Goto in every level's `NPCS`.
 - **Sprite sheets → animations**: `SheetFrames.build(walk_sheet, work_sheet)` (`scripts/util/SheetFrames.gd`) turns the generator's 8-frame sheets into `idle_/walk_/work_<down|left|up|right>`.
 - `GameState` autoload holds cross-scene progress (day, Yoshiko's rhythm) — the save system should serialize it.
 - Start with **Phase 3 (Yoshiko)** — her loop is the most mechanical and self-contained; best for prototyping core systems

@@ -11,12 +11,12 @@ const TILE := 64
 #   S  shredder (14)     T  TRAN cart          P  player start
 #   L  locker            W  Power Tower        R  reception counter
 #   C  Captain Samukawa  I  Itsumi             H  Hanzake
-#   G  the Giant         O  Goto
+#   G  the Giant         O  Goto               U  shuttle stop
 const LAYOUT: Array[String] = [
 	"##############################",
 	"#LLLL....#,,,,,,,,R,,,,,O,,,,#",
 	"#........#,,,,,,,,,,,,,,,,,,,#",
-	"#..P.....#,,,,,,,,,,,,,,,,,,,#",
+	"#..P.....#,,,,,,,,,,,,,,,,,U,#",
 	"#........#,,,,,,,,,,,,,,,,,,,#",
 	"###..#####,,,,,,,,,,,,,,,,,,,#",
 	"#............................#",
@@ -46,6 +46,7 @@ const DAYS_BEFORE_ENDING := 3
 const ShredderScene := preload("res://scenes/objects/Shredder.tscn")
 const NPCScene := preload("res://scenes/actors/NPC.tscn")
 const PropScene := preload("res://scenes/objects/Prop.tscn")
+const BusStopScene := preload("res://scenes/objects/BusStop.tscn")
 const BLACK_BIRD := preload("res://assets/sprites/objects/factory_shag.png")
 
 const PROPS := {
@@ -157,8 +158,10 @@ const RHYTHM_FRAGMENTS := [
 var _pages_today := 0
 var _bags_today := 0
 var _ending_started := false
+var _bus_pos := Vector2.ZERO
 
 func _ready() -> void:
+	GameState.current_character = "yoshiko"
 	_build_level()
 
 	player.prompt_changed.connect(hud.set_prompt)
@@ -170,15 +173,36 @@ func _ready() -> void:
 		shredder.shredded.connect(_on_shredded)
 	GameClock.bell_rang.connect(_on_bell)
 
-	tran_cart.deliver(START_CONTAINERS)
-	_update_stats()
 	hud.set_surreal(GameState.yoshiko_rhythm, 0.01)
 
+	if GameState.returning_from_bridge:
+		_resume_from_bridge()
+	else:
+		_start_fresh_day()
+
+func _start_fresh_day() -> void:
+	tran_cart.deliver(START_CONTAINERS)
+	_update_stats()
 	GameClock.start_day()
 	if GameState.day >= DAYS_BEFORE_ENDING:
 		hud.toast("Rain on the high windows.", 4.0)
 	else:
 		hud.toast("Day %d. Print Services, basement." % GameState.day, 3.0)
+
+func _resume_from_bridge() -> void:
+	GameState.returning_from_bridge = false
+	var p := GameState.take_day_progress()
+	_pages_today = p.get("pages", 0)
+	_bags_today = p.get("bags", 0)
+	GameState.restore_clock()
+	tran_cart.deliver(START_CONTAINERS)  # fresh containers waiting on the cart
+	player.position = _bus_pos + Vector2(0, TILE)
+	_update_stats()
+	hud.toast("Back from the bridge. The machines are waiting.", 3.0)
+
+## Stash the day's tally before the shuttle leaves (WorldTravel pauses the clock).
+func on_board_bus() -> void:
+	GameState.save_day_progress({"pages": _pages_today, "bags": _bags_today})
 
 # --- Level construction ---------------------------------------------------------
 
@@ -194,13 +218,18 @@ func _build_level() -> void:
 			var tile := TILE_BASEMENT_FLOOR
 			if ch == "#":
 				tile = TILE_WALL
-			elif ch in [",", "R", "O"]:
+			elif ch in [",", "R", "O", "U"]:
 				tile = TILE_FACTORY_FLOOR
 			floor_layer.set_cell(cell, 0, tile)
 
 			match ch:
 				"P":
 					player.position = pos
+				"U":
+					_bus_pos = pos
+					var stop := BusStopScene.instantiate()
+					stop.position = pos
+					entities.add_child(stop)
 				"T":
 					tran_cart.position = pos
 				"S":

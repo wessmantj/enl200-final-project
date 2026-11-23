@@ -13,6 +13,7 @@ const TILE := 64
 #   D  your proof desk    F  return shelf      J  coworker desk (scenery)
 #   B  filing cabinet     H  phone             N  window (look outside)
 #   K  Kasumi             I  Irinoi            G  Glasses
+#   O  Goto               U  shuttle stop
 const LAYOUT: Array[String] = [
 	"######################",
 	"#....................#",
@@ -20,12 +21,12 @@ const LAYOUT: Array[String] = [
 	"#....................#",
 	"#..DJ.......K........#",
 	"#..P#................#",
-	"#....................#",
+	"#...........O........#",
 	"#..J#..J.....I.......#",
 	"#..##..#.............#",
 	"#..J...J.............#",
 	"#..........G.........#",
-	"#.......H.......F....#",
+	"#.......H.......F..U.#",
 	"#....................#",
 	"######################",
 ]
@@ -46,6 +47,7 @@ const ReturnShelfScene := preload("res://scenes/objects/ReturnShelf.tscn")
 const ProofDeskScene := preload("res://scenes/objects/ProofDesk.tscn")
 const NPCScene := preload("res://scenes/actors/NPC.tscn")
 const PropScene := preload("res://scenes/objects/Prop.tscn")
+const BusStopScene := preload("res://scenes/objects/BusStop.tscn")
 
 const PROPS := {
 	"J": {
@@ -111,6 +113,19 @@ var NPCS := {
 			[{"speaker": "", "text": "Glasses glances at your packet, then back at his. He has heard every word in this room."}],
 		],
 	},
+	"O": {
+		"name": "Goto",
+		"walk": preload("res://assets/sprites/npcs/goto_walk.png"),
+		"patrol": [Vector2.ZERO, Vector2(3 * TILE, 0)],
+		"conversations": [
+			[
+				{"speaker": "Goto", "text": "Ah, the proofreading floor! Yes. I look in on this division too. And Print Services. And the grounds."},
+				{"speaker": "Narrator", "text": "(I've seen this man somewhere. Or someone exactly like him. The factory is full of him.)"},
+				{"speaker": "Goto", "text": "Mark the errors, file the packets. Don't trouble yourself over what any of it means. That's rather the spirit of the place."},
+			],
+			[{"speaker": "Goto", "text": "Still here? Good, good. Catch the bridge shuttle at lunch if you need air."}],
+		],
+	},
 }
 
 const HAZE_FRAGMENTS := [
@@ -132,8 +147,10 @@ var _carrying_report := false
 var _idle_time := 0.0
 var _sleeping := false
 var _ending_started := false
+var _bus_pos := Vector2.ZERO
 
 func _ready() -> void:
+	GameState.current_character = "narrator"
 	_build_level()
 
 	player.prompt_changed.connect(hud.set_prompt)
@@ -150,11 +167,27 @@ func _ready() -> void:
 	if GameState.day >= 2 and not GameState.narrator_read_report:
 		shelf.report_pending = true
 
-	_update_stats()
 	hud.set_surreal(GameState.narrator_haze, 0.01)
 
-	GameClock.start_day()
-	hud.toast("Day %d. Document Division, proofreading floor." % GameState.day, 3.0)
+	if GameState.returning_from_bridge:
+		_resume_from_bridge()
+	else:
+		_update_stats()
+		GameClock.start_day()
+		hud.toast("Day %d. Document Division, proofreading floor." % GameState.day, 3.0)
+
+func _resume_from_bridge() -> void:
+	GameState.returning_from_bridge = false
+	var p := GameState.take_day_progress()
+	_packets_today = p.get("packets", 0)
+	GameState.restore_clock()
+	player.position = _bus_pos + Vector2(0, -TILE)
+	_update_stats()
+	hud.toast("Back from the bridge. The shelf is full again.", 3.0)
+
+## Stash the day's tally before the shuttle leaves (WorldTravel pauses the clock).
+func on_board_bus() -> void:
+	GameState.save_day_progress({"packets": _packets_today})
 
 # --- Level construction ---------------------------------------------------------
 
@@ -174,6 +207,11 @@ func _build_level() -> void:
 			match ch:
 				"P":
 					player.position = pos
+				"U":
+					_bus_pos = pos
+					var stop := BusStopScene.instantiate()
+					stop.position = pos
+					entities.add_child(stop)
 				"D":
 					var d := ProofDeskScene.instantiate()
 					d.add_to_group("proof_desks")

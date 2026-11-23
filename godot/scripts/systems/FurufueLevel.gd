@@ -183,6 +183,8 @@ func _build_level() -> void:
 	noise.frequency = 0.14
 	noise.seed = 1983  # the year the novel is set; moss regrows the same each day
 
+	var floor_cells: Array[Vector2i] = []
+	var wall_cells: Array[Vector2i] = []
 	for y in LAYOUT.size():
 		var row := LAYOUT[y]
 		for x in row.length():
@@ -199,6 +201,11 @@ func _build_level() -> void:
 				"W":
 					tile = TILE_RIVER
 			floor_layer.set_cell(cell, 0, tile)
+
+			if ch == "#":
+				wall_cells.append(cell)
+			elif ch in [".", ","]:
+				floor_cells.append(cell)
 
 			match ch:
 				"P":
@@ -227,6 +234,8 @@ func _build_level() -> void:
 						_spawn_prop(PROPS[ch], pos)
 					elif NPCS.has(ch):
 						_spawn_npc(NPCS[ch], pos)
+
+	Decorator.decorate(self, "grounds", floor_cells, wall_cells, 2027)
 
 	var cam: Camera2D = player.camera
 	cam.limit_left = 0

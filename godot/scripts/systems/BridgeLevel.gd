@@ -87,6 +87,8 @@ func _ready() -> void:
 # --- Level construction ---------------------------------------------------------
 
 func _build_level() -> void:
+	var floor_cells: Array[Vector2i] = []
+	var wall_cells: Array[Vector2i] = []
 	for y in LAYOUT.size():
 		var row := LAYOUT[y]
 		for x in row.length():
@@ -97,8 +99,11 @@ func _build_level() -> void:
 			var tile := TILE_DECK
 			if ch == "#":
 				tile = TILE_WALL
+				wall_cells.append(cell)
 			elif ch == "W":
 				tile = TILE_RIVER
+			else:
+				floor_cells.append(cell)
 			floor_layer.set_cell(cell, 0, tile)
 
 			match ch:
@@ -113,6 +118,8 @@ func _build_level() -> void:
 					_spawn_restaurant(pos)
 				"O":
 					_spawn_npc(GOTO, pos)
+
+	Decorator.decorate(self, "bridge", floor_cells, wall_cells, 606)
 
 	var cam: Camera2D = player.camera
 	cam.limit_left = 0

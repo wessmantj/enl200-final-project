@@ -708,6 +708,122 @@ def make_power_tower():
     return img
 
 # ---------------------------------------------------------------------------
+# 2b. DECALS — small, mostly-transparent details scattered to fill the rooms
+#     (stains, cracks, scattered paper, puddles, debris, posters, pipes,
+#     cables, boxes). All 16x16 RGBA; the game scatters them under the props.
+# ---------------------------------------------------------------------------
+
+def _blob(d, cx, cy, rx, ry, color):
+    d.ellipse([cx - rx, cy - ry, cx + rx, cy + ry], fill=color)
+
+def make_decal_stain():
+    """Dark oily/water stain."""
+    img = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    _blob(d, 7, 8, 5, 4, (18, 16, 14, 70))
+    _blob(d, 9, 7, 3, 3, (12, 10, 8, 95))
+    _blob(d, 5, 10, 2, 2, (18, 16, 14, 60))
+    return img
+
+def make_decal_crack():
+    """Thin branching floor crack."""
+    img = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    c = (25, 24, 22, 150)
+    d.line([(2, 4), (7, 8), (10, 7), (14, 11)], fill=c, width=1)
+    d.line([(7, 8), (6, 13)], fill=c, width=1)
+    d.line([(10, 7), (12, 4)], fill=c, width=1)
+    return img
+
+def make_decal_paper():
+    """A few scattered paper scraps."""
+    img = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    for ox, oy in [(2, 9), (7, 4), (9, 11)]:
+        rect(d, ox, oy, ox + 3, oy + 3, (232, 228, 214, 235))
+        px(d, ox, oy, (208, 203, 188, 235))
+        d.line([(ox + 1, oy + 1), (ox + 3, oy + 1)], fill=(160, 157, 148, 235))
+        d.line([(ox + 1, oy + 2), (ox + 2, oy + 2)], fill=(160, 157, 148, 235))
+    return img
+
+def make_decal_puddle():
+    """Translucent blue-grey puddle with a highlight."""
+    img = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    _blob(d, 8, 9, 6, 4, (70, 95, 110, 95))
+    _blob(d, 8, 9, 4, 2, (90, 120, 140, 85))
+    d.line([(5, 7), (9, 7)], fill=(190, 210, 225, 120))
+    return img
+
+def make_decal_debris():
+    """Scattered small specks — grit, leaves, bits."""
+    img = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    for x, y, c in [(3, 5, (40, 38, 34, 200)), (11, 4, (55, 48, 40, 200)),
+                     (6, 11, (36, 34, 30, 200)), (13, 10, (48, 44, 38, 200)),
+                     (9, 8, (30, 28, 25, 180)), (4, 13, (52, 46, 40, 180))]:
+        px(d, x, y, c)
+        px(d, x + 1, y, (c[0] + 10, c[1] + 10, c[2] + 10, c[3]))
+    return img
+
+def make_decal_poster():
+    """A notice/poster for walls."""
+    img = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    rect(d, 3, 2, 12, 13, (225, 220, 205, 255))
+    rect(d, 3, 2, 12, 3, (200, 70, 60, 255))     # colored header
+    for yy in (5, 7, 9, 11):
+        d.line([(4, yy), (11, yy)], fill=(120, 118, 110, 255))
+    px(d, 3, 2, (90, 88, 82, 255))               # pin corners
+    px(d, 12, 2, (90, 88, 82, 255))
+    return img
+
+def make_decal_pipe():
+    """A vertical pipe run for walls."""
+    img = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    rect(d, 6, 0, 9, 15, (120, 122, 125, 255))
+    rect(d, 6, 0, 6, 15, (150, 152, 155, 255))   # highlight
+    rect(d, 9, 0, 9, 15, (85, 87, 90, 255))      # shadow
+    for yy in (3, 8, 12):                         # joint bands
+        rect(d, 5, yy, 10, yy + 1, (95, 97, 100, 255))
+    return img
+
+def make_decal_cables():
+    """Loose cable run along the floor."""
+    img = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    d.line([(0, 6), (5, 8), (10, 6), (15, 9)], fill=(30, 30, 32, 230), width=1)
+    d.line([(0, 9), (6, 11), (11, 9), (15, 12)], fill=(90, 60, 50, 230), width=1)
+    px(d, 5, 8, (200, 180, 60, 255))             # a connector
+    return img
+
+def make_decal_box():
+    """A small cardboard box, top-down."""
+    img = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    rect(d, 3, 3, 12, 12, (150, 118, 80, 255))
+    rect(d, 3, 3, 12, 4, (172, 138, 96, 255))    # top highlight
+    rect(d, 11, 3, 12, 12, (120, 94, 62, 255))   # side shadow
+    d.line([(3, 7), (12, 7)], fill=(110, 86, 56, 255))   # flap seam
+    d.line([(7, 3), (7, 12)], fill=(110, 86, 56, 255))
+    rect(d, 6, 7, 9, 8, (210, 205, 190, 255))    # tape
+    return img
+
+def make_decals():
+    return {
+        "stain":  make_decal_stain(),
+        "crack":  make_decal_crack(),
+        "paper":  make_decal_paper(),
+        "puddle": make_decal_puddle(),
+        "debris": make_decal_debris(),
+        "poster": make_decal_poster(),
+        "pipe":   make_decal_pipe(),
+        "cables": make_decal_cables(),
+        "box":    make_decal_box(),
+    }
+
+# ---------------------------------------------------------------------------
 # 3. FACTORY TILESET — assemble a usable tileset sheet
 # ---------------------------------------------------------------------------
 
@@ -821,6 +937,11 @@ def main():
     creatures = make_creatures()
     for name, c in creatures.items():
         save(scale4x(c), "objects", f"{name}.png")
+
+    # Decals
+    print("\n[6] Decals")
+    for name, dec in make_decals().items():
+        save(scale4x(dec), "decals", f"{name}.png")
 
     print("\n✓ All sprites generated in /sprites/")
 

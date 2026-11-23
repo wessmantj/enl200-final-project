@@ -192,6 +192,8 @@ func on_board_bus() -> void:
 # --- Level construction ---------------------------------------------------------
 
 func _build_level() -> void:
+	var floor_cells: Array[Vector2i] = []
+	var wall_cells: Array[Vector2i] = []
 	for y in LAYOUT.size():
 		var row := LAYOUT[y]
 		for x in row.length():
@@ -202,6 +204,9 @@ func _build_level() -> void:
 			var tile := TILE_OFFICE_FLOOR
 			if ch == "#":
 				tile = TILE_WALL
+				wall_cells.append(cell)
+			elif ch == ".":
+				floor_cells.append(cell)
 			floor_layer.set_cell(cell, 0, tile)
 
 			match ch:
@@ -226,6 +231,8 @@ func _build_level() -> void:
 						_spawn_prop(PROPS[ch], pos)
 					elif NPCS.has(ch):
 						_spawn_npc(NPCS[ch], pos)
+
+	Decorator.decorate(self, "office", floor_cells, wall_cells, 1312)
 
 	var cam: Camera2D = player.camera
 	cam.limit_left = 0
